@@ -30,6 +30,7 @@ dkStart = datetime.now()
 
 # 判断是否在打卡时间内
 def timeFlag():
+    print(time.strftime()
     startTime = time.strftime("%Y-%m-%d 23:00:00", time.localtime())
     endTime = time.strftime("%Y-%m-%d 11:30:00", time.localtime())
     startTimeStamp = time.mktime(time.strptime(startTime, "%Y-%m-%d %H:%M:%S"))
@@ -157,5 +158,6 @@ def sendMail(text="健康打卡成功", error=''):
             print("邮件发送失败！\n{}".format(e))
 
 if __name__ == '__main__':
+    print(time.strftime('%Y %m %d %H %M %S', time.localtime()))
     if timeFlag():
         autoSignIn()

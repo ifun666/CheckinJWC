@@ -69,7 +69,6 @@ def autoSignIn():
         print('登录成功...\n正在更改表单...')
 
         # 判断学号密码是否正确
-        print('driver.title is: {}'.format(driver.title))
         title = str(driver.title)
         if '厦门大学' in title:
             print('登录成功...\n正在更改表单...')
@@ -89,7 +88,6 @@ def autoSignIn():
         for handle in driver.window_handles:
             if handle != window1:
                 driver.switch_to.window(handle)
-                # print(handle)
                 break
 
         time.sleep(1)
@@ -99,8 +97,6 @@ def autoSignIn():
         time.sleep(2)
 
         span = driver.find_element_by_xpath('//*[@id="select_1582538939790"]/div/div/span[1]')
-        print('span.get_attribute() is: {}'.format(span.get_attribute('innerHTML')))
-
         # 判断是否已打卡！
         if span.get_attribute('innerHTML') == '是 Yes':
             print("今日已打卡！请勿重复打卡。")
@@ -126,7 +122,7 @@ def autoSignIn():
 # 发送微信推送消息
 def sendMsg(m, error=''):
     if SERVER == 'on':
-        timeNow = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+        timeNow = time.strftime('%Y-%m-%d', time.localtime())
         duration = datetime.now() - dkStart
         if error == '':
             msg = '{} {}! 本次打卡耗时{}秒。'.format(timeNow, m, duration.seconds)

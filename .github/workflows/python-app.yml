@@ -30,7 +30,7 @@ jobs:
       run: |
         python AutoSignIn.py
       env:
-        StuID: ${{ secrets.STUID }}
+        STUID: ${{ secrets.STUID }}
         PW: ${{ secrets.PW }}
         SERVER: ${{ secrets.SERVER }}
         SCKEY: ${{ secrets.SCKEY }}

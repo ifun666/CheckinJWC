@@ -1,5 +1,6 @@
 # AutoSignIn
-打卡时间：每天的8-19点，每3小时运行一次。
+打卡时间：每天的8-19点，每3小时运行一次。  
+_Hope everyone always be healthy._
 ## 操作说明
 ### 1、fork 此仓库
 直接fork此仓库到自己的GitHub；

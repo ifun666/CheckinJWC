@@ -31,7 +31,7 @@ dkStart = datetime.now()
 # 判断是否在打卡时间内
 def timeFlag():
     print('time.localtime is: {}'.format(time.strftime('%Y %m %d %H %M %S', time.localtime())))
-    startTime = time.strftime("%Y-%m-%d 23:00:00", time.localtime())
+    startTime = time.strftime("%Y-%m-%d 00:00:00", time.localtime())
     endTime = time.strftime("%Y-%m-%d 11:30:00", time.localtime())
     startTimeStamp = time.mktime(time.strptime(startTime, "%Y-%m-%d %H:%M:%S"))
     endTimeStamp = time.mktime(time.strptime(endTime, "%Y-%m-%d %H:%M:%S"))

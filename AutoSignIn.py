@@ -19,7 +19,7 @@ SCKEY = os.environ['SCKEY']
 MAIL_NOTICE = os.environ['MAIL_NOTICE']
 MAILBOX = os.environ['MAILBOX']
 
-CHROMEDRIVER_PATH = './chromedriver'
+CHROMEDRIVER_PATH = '/usr/bin/chromedriver'
 
 # 以下内容无需修改
 mail_host = 'smtp.qq.com'

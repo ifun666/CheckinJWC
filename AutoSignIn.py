@@ -12,20 +12,12 @@ from email.header import Header
 import requests as re
 
 # 系统变量
-# stuID = os.environ['StuID']
-# pw = os.environ['PW']
-# SERVER = os.environ['Server']
-# SCKEY = os.environ['SCKey']
-
-# 修改配置学号、密码、接收通知邮箱
-stuID = '23220171151076'
-pw = 'CHaixi951103'
-MAIL_NOTICE = 'on'
-mail_receiver = '973006245@qq.com'
-
-# server酱
-SERVER = 'on'
-SCKEY = 'SCU131982T134cf902075ed7f5179e8b91d7ea75ed5fc7330976360'
+StuID = os.environ['STUID']
+PW = os.environ['PW']
+SERVER = os.environ['SERVER']
+SCKEY = os.environ['SCKEY']
+MAIL_NOTICE = os.environ['MAIL_NOTICE']
+MAILBOX = os.environ['MAILBOX']
 
 CHROMEDRIVER_PATH = './chromedriver'
 
@@ -34,39 +26,7 @@ mail_host = 'smtp.qq.com'
 mail_sender = '973006245@qq.com'
 mail_pw = 'ihoezpquhuawbfif'
 url = 'https://xmuxg.xmu.edu.cn/app/214'
-
 dkStart = datetime.now()
-
-# def idTest():
-#     print('学号{}开始登录测试...'.format(stuID))
-#     return True
-#     options = webdriver.ChromeOptions()
-#     options.add_argument('headless')
-#     driver = webdriver.Chrome(CHROMEDRIVER_PATH, options=options)
-#     # driver = webdriver.Chrome(CHROMEDRIVER_PATH)
-#     driver.get(url)
-#     driver.maximize_window()
-#     driver.delete_all_cookies()
-
-#     time.sleep(3)
-#     driver.find_element_by_xpath('//*[@id="loginLayout"]/div[3]/div[2]/div/button[2]').click()
-#     time.sleep(1)
-
-#     driver.find_element_by_xpath('//input[@id="username"]').send_keys(stuID)
-#     driver.find_element_by_xpath('//input[@id="password"]').send_keys(pw)
-#     driver.find_element_by_xpath('//input[@id="password"]').send_keys(Keys.ENTER)
-#     time.sleep(1)
-
-#     title = driver.find_element_by_xpath('/html/head/title').get_attribute('innerHTML')
-#     print('title of html is: {}'.format(title))
-#     if '厦门大学' in title:
-#         print('登录测试成功！')
-#         return True
-#     elif title == '统一身份认证':
-#         msg = driver.find_element_by_id('msg').get_attribute('innerHTML')
-#         print(msg)
-#         sendMsg(msg)
-#         return False
 
 # 判断是否在打卡时间内
 def timeFlag():
@@ -101,23 +61,18 @@ def autoSignIn():
         time.sleep(1)
 
         print('正在登录...')
-        # print('driver.title is: {}'.format(driver.title))
-        driver.find_element_by_xpath('//input[@id="username"]').send_keys(stuID)
-        driver.find_element_by_xpath('//input[@id="password"]').send_keys(pw)
+        driver.find_element_by_xpath('//input[@id="username"]').send_keys(StuID)
+        driver.find_element_by_xpath('//input[@id="password"]').send_keys(PW)
         driver.find_element_by_xpath('//input[@id="password"]').send_keys(Keys.ENTER)
         time.sleep(1)
         print('登录成功...\n正在更改表单...')
 
         # 判断学号密码是否正确
-        # title = driver.find_element_by_xpath('/html/head/title').get_attribute('innerHTML')
-        # print('title of this html is: {}'.format(title))
         print('driver.title is: {}'.format(driver.title))
         title = str(driver.title)
         if '厦门大学' in title:
             print('登录成功...\n正在更改表单...')
         elif title == '统一身份认证' or title == 'Unified Identity Authentication':
-            # msg = driver.find_element_by_id('msg').get_attribute('innerHTML')
-            # print('msg is: {}'.format(msg))
             msg = '学号或密码错误？or 登录频繁，需要验证码登录？'
             print('Error: {}'.format(msg))
             sendMsg(msg)
@@ -152,7 +107,6 @@ def autoSignIn():
             sendMsg("今日已打卡！请勿重复打卡。")
         else:
             driver.find_element_by_xpath('//*[@id="select_1582538939790"]/div').click()
-            print('span is clicked!')
             driver.find_element_by_xpath('//span[text()="是 Yes"]').click()
             time.sleep(1)
             driver.find_element_by_xpath('//*[@id="pdfDomContent"]/../span/span').click()
@@ -189,14 +143,14 @@ def sendMail(text="健康打卡成功", error=''):
         content = "{}\n{}\n本次耗时{}秒！".format(timeNow, text, duration)
         msg = MIMEText(content, 'plain', 'utf-8')
         msg["From"] = Header(mail_sender, 'utf-8')
-        msg["To"] = Header(mail_receiver, 'utf-8')
+        msg["To"] = Header(MAILBOX, 'utf-8')
         subject = "{0}-{1}".format(time.strftime("%Y%m%d", time.localtime()), text)
         msg["Subject"] = Header(subject, 'utf-8')
         try:
             server = smtplib.SMTP()
             server.connect(mail_host, 25)
             server.login(mail_sender, mail_pw)
-            server.sendmail(mail_sender, mail_receiver, msg.as_string())
+            server.sendmail(mail_sender, MAILBOX, msg.as_string())
             server.quit()
             print("邮件发送成功！")
         except Exception as e:

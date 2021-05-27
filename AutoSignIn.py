@@ -30,8 +30,8 @@ dkStart = datetime.now()
 
 # 判断是否在打卡时间内
 def timeFlag():
-    startTime = time.strftime("%Y-%m-%d 07:00:00", time.localtime())
-    endTime = time.strftime("%Y-%m-%d 19:30:00", time.localtime())
+    startTime = time.strftime("%Y-%m-%d 23:00:00", time.localtime())
+    endTime = time.strftime("%Y-%m-%d 11:30:00", time.localtime())
     startTimeStamp = time.mktime(time.strptime(startTime, "%Y-%m-%d %H:%M:%S"))
     endTimeStamp = time.mktime(time.strptime(endTime, "%Y-%m-%d %H:%M:%S"))
     if startTimeStamp < time.time() < endTimeStamp:

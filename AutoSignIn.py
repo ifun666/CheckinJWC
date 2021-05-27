@@ -28,21 +28,6 @@ mail_pw = 'ihoezpquhuawbfif'
 url = 'https://xmuxg.xmu.edu.cn/app/214'
 dkStart = datetime.now()
 
-# 判断是否在打卡时间内
-def timeFlag():
-    print('time.localtime is: {}'.format(time.strftime('%Y %m %d %H %M %S', time.localtime())))
-    startTime = time.strftime("%Y-%m-%d 00:00:00", time.localtime())
-    endTime = time.strftime("%Y-%m-%d 11:30:00", time.localtime())
-    startTimeStamp = time.mktime(time.strptime(startTime, "%Y-%m-%d %H:%M:%S"))
-    endTimeStamp = time.mktime(time.strptime(endTime, "%Y-%m-%d %H:%M:%S"))
-    if startTimeStamp < time.time() < endTimeStamp:
-        print('目前处于打卡时间...')
-        return True
-    else:
-        print("不在打卡时间!")
-        sendMsg('不在打卡时间。')
-        return False
-
 # 自动打卡
 def autoSignIn():
     global dkStart
@@ -154,5 +139,4 @@ def sendMail(text="健康打卡成功", error=''):
             print("邮件发送失败！\n{}".format(e))
 
 if __name__ == '__main__':
-    if timeFlag():
-          autoSignIn()
+    autoSignIn()

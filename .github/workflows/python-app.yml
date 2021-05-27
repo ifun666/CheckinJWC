@@ -26,6 +26,10 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Get chromedriver
+      run: |
+        wget http://npm.taobao.org/mirrors/chromedriver/87.0.4280.88/chromedriver_linux64.zip
+        unzip chromedriver_linux64.zip /usr/bin/
     - name: SignIn
       run: |
         python AutoSignIn.py

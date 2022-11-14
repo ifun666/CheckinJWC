@@ -1,142 +1,104 @@
-#! usr/bin/python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
+# _*_ coding: utf-8 _*_
 
-import os
+import json
+import re
+import requests
 import time
-from datetime import datetime
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-import smtplib
-from email.mime.text import MIMEText
-from email.header import Header
-import requests as re
 
-# 系统变量
-StuID = os.environ['STUID']
-PW = os.environ['PW']
-SERVER = os.environ['SERVER']
-SCKEY = os.environ['SCKEY']
-MAIL_NOTICE = os.environ['MAIL_NOTICE']
-MAILBOX = os.environ['MAILBOX']
+session = requests.session()  # 对全局进行会话实例化
 
-CHROMEDRIVER_PATH = '/usr/bin/chromedriver'
+default_headers = {
+    'Connection': 'keep-alive',
+    'Accept': 'application/json, text/javascript, */*; q=0.01',
+    'X-Requested-With': 'XMLHttpRequest',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36',
+    'Content-Type': 'application/json;charset=UTF-8',
+    'Origin': 'https://qczj.h5yunban.com',
+    'Sec-Fetch-Site': 'same-origin',
+    'Sec-Fetch-Mode': 'cors',
+    'Sec-Fetch-Dest': 'empty',
+    'Referer': 'https://qczj.h5yunban.com/qczj-youth-learning/mine.php',
+    'Accept-Language': 'zh-CN,zh;q=0.9',
+}
 
-# 以下内容无需修改
-mail_host = 'smtp.qq.com'
-mail_sender = '973006245@qq.com'
-mail_pw = 'ihoezpquhuawbfif'
-url = 'https://xmuxg.xmu.edu.cn/app/214'
-dkStart = datetime.now()
 
-# 自动打卡
-def autoSignIn():
-    global dkStart
-    try:
-        dkStart = datetime.now()
-        print('正在打卡...')
-        options = webdriver.ChromeOptions()
-        options.add_argument('headless')
-        driver = webdriver.Chrome(CHROMEDRIVER_PATH, options=options)
-        # driver = webdriver.Chrome(CHROMEDRIVER_PATH)
-        driver.get(url)
-        driver.maximize_window()
-        driver.delete_all_cookies()
-
-        time.sleep(3)
-        driver.find_element_by_xpath('//*[@id="loginLayout"]/div[3]/div[2]/div/button[2]').click()
-        time.sleep(1)
-
-        print('正在登录...')
-        driver.find_element_by_xpath('//input[@id="username"]').send_keys(StuID)
-        driver.find_element_by_xpath('//input[@id="password"]').send_keys(PW)
-        driver.find_element_by_xpath('//input[@id="password"]').send_keys(Keys.ENTER)
-        time.sleep(1)
-        print('登录成功...\n正在更改表单...')
-
-        # 判断学号密码是否正确
-        title = str(driver.title)
-        if '厦门大学' in title:
-            print('登录成功...\n正在更改表单...')
-        elif title == '统一身份认证' or title == 'Unified Identity Authentication':
-            msg = '学号或密码错误？or 登录频繁，需要验证码登录？'
-            print('Error: {}'.format(msg))
-            sendMsg(msg)
-            return 0
-        else:
-            pass
-
-        # 点击daily health report
-        driver.find_element_by_xpath('//*[@id="mainPage-page"]/div[1]/div[3]/div[2]/div[2]/div[3]/div/div[1]/div[2]').click()
-        time.sleep(1)
-
-        window1 = driver.current_window_handle
-        for handle in driver.window_handles:
-            if handle != window1:
-                driver.switch_to.window(handle)
-                break
-
-        time.sleep(1)
-
-        # 点击我的表单
-        driver.find_element_by_xpath('//*[@id="mainM"]/div/div/div/div[1]/div[2]/div/div[3]/div[2]').click()
-        time.sleep(2)
-
-        span = driver.find_element_by_xpath('//*[@id="select_1582538939790"]/div/div/span[1]')
-        # 判断是否已打卡！
-        if span.get_attribute('innerHTML') == '是 Yes':
-            print("今日已打卡！请勿重复打卡。")
-            driver.quit()
-            sendMsg("今日已打卡！请勿重复打卡。")
-        else:
-            driver.find_element_by_xpath('//*[@id="select_1582538939790"]/div').click()
-            driver.find_element_by_xpath('//span[text()="是 Yes"]').click()
-            time.sleep(1)
-            driver.find_element_by_xpath('//*[@id="pdfDomContent"]/../span/span').click()
-            time.sleep(1)
-            driver.switch_to.alert.accept()
-            time.sleep(2)
-            driver.quit()
-            print('打卡成功！')
-            sendMail("打卡成功！")
-            sendMsg("打卡成功！")
-    except Exception as e:
-        print('打卡失败！\n{}'.format(str(e)))
-        sendMsg("打卡失败！", str(e))
-        sendMail("打卡失败！", str(e))
-
-# 发送微信推送消息
-def sendMsg(m, error=''):
-    if SERVER == 'on':
-        timeNow = time.strftime('%Y-%m-%d', time.localtime())
-        duration = datetime.now() - dkStart
-        if error == '':
-            msg = '{} {}! 本次打卡耗时{}秒。'.format(timeNow, m, duration.seconds)
-        else:
-            msg = '{} {}!'.format(timeNow, error)
-        url = 'https://sc.ftqq.com/{}.send?text={}&desp={}'.format(SCKEY, msg, '{}\n{}'.format(msg, error))
-        re.get(url)
-
-# 发送邮件通知
-def sendMail(text="健康打卡成功", error=''):
-    print('发送邮件...')
-    if MAIL_NOTICE == 'on':
-        timeNow = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        duration = datetime.now() - dkStart
-        content = "{}\n{}\n本次耗时{}秒！".format(timeNow, text, duration)
-        msg = MIMEText(content, 'plain', 'utf-8')
-        msg["From"] = Header(mail_sender, 'utf-8')
-        msg["To"] = Header(MAILBOX, 'utf-8')
-        subject = "{0}-{1}".format(time.strftime("%Y%m%d", time.localtime()), text)
-        msg["Subject"] = Header(subject, 'utf-8')
+def get_resp(method, url, headers=default_headers, timeout=5, **kwargs):
+    for i in range(5):  # 最多重试5次
         try:
-            server = smtplib.SMTP()
-            server.connect(mail_host, 25)
-            server.login(mail_sender, mail_pw)
-            server.sendmail(mail_sender, MAILBOX, msg.as_string())
-            server.quit()
-            print("邮件发送成功！")
-        except Exception as e:
-            print("邮件发送失败！\n{}".format(e))
+            response = session.request(method=method, url=url, headers=headers, timeout=timeout, **kwargs)
+            if response.status_code == 200:
+                return response.text
+            else:
+                if i == 4:
+                    print('【致命错误】接口状态码' + str(response.status_code) + '异常：' + url)
+                else:
+                    time.sleep(1)
+        except:
+            if i == 4:
+                print('【致命错误】接口连接异常：' + url)
+            else:
+                time.sleep(1)
+    return None
+
+
+def login():
+    while 1 == 1:
+        resp = get_resp('get', 'https://qczj.h5yunban.com/qczj-youth-learning/cgi-bin/login/we-chat/callback?callback=https%3A%2F%2Fqczj.h5yunban.com%2Fqczj-youth-learning%2Findex.php&scope=snsapi_userinfo&appid=wx56b888a1409a2920&openid=oO-a2txk3nyyiH81nkIUBiT6ZcSU&nickname=%25E6%259A%2597%25E9%25BB%2591%25E5%2590%258C%25E5%25AD%25A6&headimg=https%3A%2F%2Fthirdwx.qlogo.cn%2Fmmopen%2Fvi_32%2FVic3gRhvkNpgH3YHHiaO4IWk6zS6MicicaVgw3OxpiaFG6qtUhWsdrKZ5kDsiclDKFC9JO3L46mLSibAHrWpic7p3S4JdA%2F132&time=1668410297&source=common&sign=EF360516BBB0EBC9CBA6240419115FE3&t=1668410297')
+        print(resp)
+        accessToken = re.findall(r"'accessToken', '(.*?)'|$", str(resp))[0]
+        if accessToken != '':
+            print('登陆成功')
+            return accessToken
+        time.sleep(3)
+
+
+def islogin(resp):
+    if 'login-typetip' in resp:
+        print('\n登录态失效，正在重新登陆！')
+        login()
+        return
+    else:
+        return
+
+
+def main():
+    print("\n===============程序信息===============")
+    print("程序名称：青春浙江每日签到")
+    print("程序作者：浙中医的Richard同学")
+    print("更新时间：2022年11月8日")
+    print("程序版本：1.2.0_Beta")
+    print("===============信息结束===============")
+
+    accessToken = login()
+
+    params = {
+        'accessToken': accessToken,
+    }
+    json_data = {}
+    resp = get_resp('post', 'https://qczj.h5yunban.com/qczj-youth-learning/cgi-bin/user-api/sign-in', params=params, json=json_data)
+    print(resp)
+
+    params = {
+        'pageSize': '10',
+        'pageNum': '1',
+        'type': '百年风华正青春',
+        'desc': 'startTime',
+        'pid': 'C0096',
+    }
+    list_resp = get_resp('get', 'https://qczj.h5yunban.com/qczj-youth-learning/cgi-bin/common-api/course/list', params=params)
+    list_json = json.loads(list_resp)
+    for item in list_json['result']['list']:
+        # print(item['uriType'])
+        params = {
+            'accessToken': accessToken,
+            'id': item['id'],
+        }
+        json_data = {}
+        resp = get_resp('post', 'https://qczj.h5yunban.com/qczj-youth-learning/cgi-bin/user-api/course/study', params=params, json=json_data)
+        print(resp)
+
+
 
 if __name__ == '__main__':
-    autoSignIn()
+    main()

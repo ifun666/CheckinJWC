@@ -13,10 +13,6 @@ Settings→Secrets→New repository secret；
 | ---- | ---- | ---- |
 | STUID | 11120211111111 | 学号 |
 | PW | ****** | 密码 |
-| SERVER | on/off | 是否开启server酱|
-| SCKEY | SCU111... | 若SERVER=on，则填写自己的sckey；否则空着就行 |
-| MAIL_NOTICE | on/off | 是否开启邮箱推送 |
-| MAILBOX | 1@1.com | 用于接收通知的邮箱 |
 
 ![image](https://user-images.githubusercontent.com/26132150/119790859-d76ebd80-bf06-11eb-893e-aed9ff9b4d62.png)
 ![image](https://user-images.githubusercontent.com/26132150/119790869-da69ae00-bf06-11eb-90a9-ecc93bce687e.png)

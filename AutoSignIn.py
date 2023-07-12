@@ -65,7 +65,7 @@ def send_wx_message(webhook, content):
 
 def main():
     print("\n===============程序信息===============")
-    print("程序名称：正方软件教学管理信息服务平台")
+    print("程序名称：教务处通知")
     print("程序作者：浙中医的Richard同学")
     print("更新时间：2022年9月8日")
     print("程序版本：1.2.0_Beta")

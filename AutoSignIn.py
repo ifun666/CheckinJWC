@@ -97,6 +97,7 @@ def main():
         wx_content = '【教务处】教务处官网在『教务管理』栏目发布了《' + wztitle + '》，详情请看：https://jwc.zcmu.edu.cn/' + wzurl + '\n\n内容简介：' + description
         send_wx_message(wx_url, wx_content)
 
+    isupdate = 0
     resp = get_resp('get', 'https://jwc.zcmu.edu.cn/jxjs.htm')
     last_resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=read&textid=jxjs')
     resp_json = json.loads(last_resp)
@@ -120,6 +121,7 @@ def main():
         wx_content = '【教务处】教务处官网在『教学建设』栏目发布了《' + wztitle + '》，详情请看：https://jwc.zcmu.edu.cn/' + wzurl + '\n\n内容简介：' + description
         send_wx_message(wx_url, wx_content)
 
+    isupdate = 0
     resp = get_resp('get', 'https://jwc.zcmu.edu.cn/sjjx.htm')
     last_resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=read&textid=sjjx')
     resp_json = json.loads(last_resp)

@@ -142,6 +142,53 @@ def main():
         wx_content = '【教务处】教务处官网在『实践教学』栏目发布了《' + wztitle + '》，详情请看：https://jwc.zcmu.edu.cn/' + wzurl + '\n\n内容简介：' + description
         send_wx_message(wx_url, wx_content)
 
+    isupdate = 0
+    resp = get_resp('get', 'https://dylc.zcmu.edu.cn/xwdt/tzgg.htm')
+    last_resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=read&textid=tzgg')
+    resp_json = json.loads(last_resp)
+    last = resp_json["textcontent"]
+    wzlist = re.findall(r'<li id=".*?"><a href="../(.*?)">(.*?)</a><i>.*?</i></li>', resp)
+    for wz in wzlist:
+        wzurl = wz[0]
+        wztitle = wz[1]
+        if isupdate == 0:
+            resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=edit&textid=tzgg&textcontent=' + wztitle)
+            isupdate = 1
+        if wztitle == last:
+            break
+        print(wztitle)
+        if "content.jsp" in wzurl:
+            description = "本消息需要登陆查看，暂无内容简介"
+        else:
+            resp = get_resp('get', 'https://dylc.zcmu.edu.cn/' + wzurl)
+            description = re.findall(r'<META Name="description" Content="(.*?)" />|$', resp)[0]
+        wx_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=8f8ba152-c44b-491e-abb7-d140f6100f54'
+        wx_content = '【第一临床医学院】学院官网在『通知公告』栏目发布了《' + wztitle + '》，详情请看：https://dylc.zcmu.edu.cn/' + wzurl + '\n\n内容简介：' + description
+        send_wx_message(wx_url, wx_content)
+
+    isupdate = 0
+    resp = get_resp('get', 'https://dylc.zcmu.edu.cn/jxgz.htm')
+    last_resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=read&textid=jxgz')
+    resp_json = json.loads(last_resp)
+    last = resp_json["textcontent"]
+    wzlist = re.findall(r'<li id=".*?"><a href="(.*?)">(.*?)</a><i>.*?</i></li>', resp)
+    for wz in wzlist:
+        wzurl = wz[0]
+        wztitle = wz[1]
+        if isupdate == 0:
+            resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=edit&textid=jxgz&textcontent=' + wztitle)
+            isupdate = 1
+        if wztitle == last:
+            break
+        print(wztitle)
+        if "content.jsp" in wzurl:
+            description = "本消息需要登陆查看，暂无内容简介"
+        else:
+            resp = get_resp('get', 'https://dylc.zcmu.edu.cn/' + wzurl)
+            description = re.findall(r'<META Name="description" Content="(.*?)" />|$', resp)[0]
+        wx_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=8f8ba152-c44b-491e-abb7-d140f6100f54'
+        wx_content = '【第一临床医学院】学院官网在『教学工作』栏目发布了《' + wztitle + '》，详情请看：https://dylc.zcmu.edu.cn/' + wzurl + '\n\n内容简介：' + description
+        send_wx_message(wx_url, wx_content)
 
 
 

@@ -1,41 +1,30 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
+# _*_ coding: utf-8 _*_
+
+import base64
+import json
 import re
 import requests
-import json
-import yaml
+import rsa
 import time
-
-getToken_url = 'https://qczj.h5yunban.com/qczj-youth-learning/cgi-bin/login/we-chat/callback'
-getUserInfo_url = 'https://qczj.h5yunban.com/qczj-youth-learning/cgi-bin/user-api/course/last-info'
-getClass_url = 'https://qczj.h5yunban.com/qczj-youth-learning/cgi-bin/common-api/course/current'
-checkin_url = 'https://qczj.h5yunban.com/qczj-youth-learning/cgi-bin/user-api/course/join'
-
-headers = {
-    'Content-Type': 'text/plain'
-}
+from bs4 import BeautifulSoup
 
 session = requests.session()  # 对全局进行会话实例化
-
 default_headers = {
     'Connection': 'keep-alive',
-    'Accept': 'application/json, text/javascript, */*; q=0.01',
-    'X-Requested-With': 'XMLHttpRequest',
+    'Upgrade-Insecure-Requests': '1',
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36',
-    'Content-Type': 'application/json;charset=UTF-8',
-    'Origin': 'https://qczj.h5yunban.com',
-    'Sec-Fetch-Site': 'same-origin',
-    'Sec-Fetch-Mode': 'cors',
-    'Sec-Fetch-Dest': 'empty',
-    'Referer': 'https://qczj.h5yunban.com/qczj-youth-learning/mine.php',
+    'Referer': 'http://jwmk.zcmu.edu.cn/jwglxt/xtgl/',
     'Accept-Language': 'zh-CN,zh;q=0.9',
 }
 
-def get_resp(method, url, headers=default_headers, timeout=5, **kwargs):
+
+def get_resp(method, url, headers=default_headers, timeout=60, **kwargs):
     for i in range(5):  # 最多重试5次
         try:
             response = session.request(method=method, url=url, headers=headers, timeout=timeout, **kwargs)
             if response.status_code == 200:
+                response.encoding = 'utf-8'
                 return response.text
             else:
                 if i == 4:
@@ -49,107 +38,117 @@ def get_resp(method, url, headers=default_headers, timeout=5, **kwargs):
                 time.sleep(1)
     return None
 
-
-def getYmlConfig(yaml_file='config.yml'):
-    with open(yaml_file, 'r', encoding='utf-8') as f:
-        file_data = f.read()
-    return dict(yaml.load(file_data, Loader=yaml.FullLoader))
-
-
-def getToken(openId):
-    # 根据openId获得token
-    try:
-        token = requests.get(url=getToken_url, params=openId, headers=headers)
-        Token_raw = token.text
-        Token = re.findall('[A-Z0-9]{8}[-][A-Z0-9]{4}[-][A-Z0-9]{4}[-][A-Z0-9]{4}[-][A-Z0-9]{12}', Token_raw)[0]
-        print('获取到Token为：' + Token)
-        return Token
-    except:
-        print('【致命错误】获取Token失败，请检查openId是否正确！')
-
-
-def getinfo(accessToken):
-    # 根据accessToken获得用户信息
-    try:
-        getUserInfo = requests.get(getUserInfo_url, params=accessToken, headers=headers)
-        userInfo = getUserInfo.json()
-        cardNo = userInfo["result"]["cardNo"]
-        nid = userInfo["result"]["nid"]
-        getClass = requests.get(getClass_url, params=accessToken, headers=headers)
-        Class = getClass.json()
-        classId = Class["result"]["id"]
-        classTitle = Class["result"]["title"]
-        infos: list = userInfo['result']['nodes']
-        Faculty = [item['title'] for item in infos]
-        print('本期大学习的课程编码：' + classId + '\n本期大学习的课程名称：' + classTitle + '\n系统中的个人信息为：' + cardNo + '\n您的签到所属组织为：' + str(Faculty))
-        checkinData = {
-            'course': classId,
-            'subOrg': None,
-            'nid': nid,
-            'cardNo': cardNo
-        }
-        return checkinData
-    except Exception as e:
-        if "is not subscriptable" in str(e):
-            print("【致命错误】openId出错,无法获得您的信息！")
-        print(f'【致命错误】获取历史信息失败，请您手动打卡：{e}')
-
-
-def signup(accessToken, checkinData):
-    # 根据token和data完成打卡
-    checkin = requests.post(checkin_url, params=accessToken, data=json.dumps(checkinData), headers=headers)
-    result = checkin.json()
-    if result["status"] == 200:
-        print("成功完成本次青年大学习！")
-        return 1
-    else:
-        print('【致命错误】出现错误，错误码：' + str(result["status"]))
-        print('【致命错误】错误信息：' + str(result["message"]))
-        return result["message"]
-
-
-if __name__ == "__main__":
-    print("\n===============程序信息===============")
-    print("程序名称：浙江青年大学习部署到Action一键打卡")
-    print("程序作者：lthero-big & 浙中医的Richard同学")
-    print("更新时间：2022年11月20日")
-    print("程序版本：1.0.0_Beta")
-    print("===============信息结束===============")
-    config = getYmlConfig()
-    for index, eachuser in enumerate(config['users']):
-        print("\n===============单次开始===============")
-        print(eachuser['user']['name'] + 'openId为：' + eachuser['user']['openid'])
-        openid = {
-            'appid': 'wx56b888a1409a2920',
-            'openid': eachuser['user']['openid']
-        }
-        accessToken = getToken(openid)
-
-        params = {
-            'accessToken': accessToken,
-        }
-        json_data = {}
-        resp = get_resp('post', 'https://qczj.h5yunban.com/qczj-youth-learning/cgi-bin/user-api/sign-in', params=params, json=json_data)
-        print(resp)
-
-        params = {
-            'pageSize': '10',
-            'pageNum': '1',
-            'type': '百年风华正青春',
-            'desc': 'startTime',
-            'pid': 'C0096',
-        }
-        list_resp = get_resp('get', 'https://qczj.h5yunban.com/qczj-youth-learning/cgi-bin/common-api/course/list', params=params)
-        list_json = json.loads(list_resp)
-        for item in list_json['result']['list']:
-            # print(item['uriType'])
-            params = {
-                'accessToken': accessToken,
-                'id': item['id'],
+def send_wx_message(webhook, content):
+    for i in range(5):  # 最多重试5次
+        try:
+            headers = {
+                'Content-Type': 'application/json'
             }
-            json_data = {}
-            resp = get_resp('post', 'https://qczj.h5yunban.com/qczj-youth-learning/cgi-bin/user-api/course/study', params=params, json=json_data)
-            print(resp)
+            data = {
+                'msgtype': 'text',
+                'text': {
+                    'content': content
+                }
+            }
+            response = requests.post(webhook, headers=headers, data=json.dumps(data))
+            if response.status_code == 200:
 
-        print("===============单次结束===============")
-        time.sleep(3)
+                return response.text
+            else:
+                if i == 4:
+                    print('【致命错误】接口状态码' + str(response.status_code) + '异常：' + url)
+                else:
+                    time.sleep(1)
+        except:
+            if i == 4:
+                print('【致命错误】接口连接异常：' + url)
+            else:
+                time.sleep(1)
+    return None
+
+def main():
+    print("\n===============程序信息===============")
+    print("程序名称：正方软件教学管理信息服务平台")
+    print("程序作者：浙中医的Richard同学")
+    print("更新时间：2022年9月8日")
+    print("程序版本：1.2.0_Beta")
+    print("===============信息结束===============")
+    print("\n===============变量配置===============")
+    #print('程序配置文件中的会话ID：' + str(JSESSIONID))
+    isupdate = 0
+    print("===============配置结束===============")
+    resp = get_resp('get', 'https://jwc.zcmu.edu.cn/jwgl.htm')
+    last_resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=read&textid=jwgl')
+    resp_json = json.loads(last_resp)
+    last = resp_json["textcontent"]
+    wzlist = re.findall(r'<a class=".*?" href="(.*?)" target="_blank" title="(.*?)">', resp)
+    for wz in wzlist:
+        wzurl = wz[0]
+        wztitle = wz[1]
+        if isupdate == 0:
+            resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=edit&textid=jwgl&textcontent=' + wztitle)
+            isupdate =1
+        if wztitle == last:
+            break
+        print(wztitle)
+        if "content.jsp" in wzurl:
+            description = "本消息需要登陆查看，暂无内容简介"
+        else:
+            resp = get_resp('get', 'https://jwc.zcmu.edu.cn/' + wzurl)
+            description = re.findall(r'<META Name="description" Content="(.*?)" />|$', resp)[0]
+        wx_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=8f8ba152-c44b-491e-abb7-d140f6100f54'
+        wx_content = '【教务处】教务处官网在『教务管理』栏目发布了《' + wztitle + '》，详情请看：https://jwc.zcmu.edu.cn/' + wzurl + '\n\n内容简介：' + description
+        send_wx_message(wx_url, wx_content)
+
+    resp = get_resp('get', 'https://jwc.zcmu.edu.cn/jxjs.htm')
+    last_resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=read&textid=jxjs')
+    resp_json = json.loads(last_resp)
+    last = resp_json["textcontent"]
+    wzlist = re.findall(r'<a class=".*?" href="(.*?)" target="_blank" title="(.*?)">', resp)
+    for wz in wzlist:
+        wzurl = wz[0]
+        wztitle = wz[1]
+        if isupdate == 0:
+            resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=edit&textid=jxjs&textcontent=' + wztitle)
+            isupdate = 1
+        if wztitle == last:
+            break
+        print(wztitle)
+        if "content.jsp" in wzurl:
+            description = "本消息需要登陆查看，暂无内容简介"
+        else:
+            resp = get_resp('get', 'https://jwc.zcmu.edu.cn/' + wzurl)
+            description = re.findall(r'<META Name="description" Content="(.*?)" />|$', resp)[0]
+        wx_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=8f8ba152-c44b-491e-abb7-d140f6100f54'
+        wx_content = '【教务处】教务处官网在『教学建设』栏目发布了《' + wztitle + '》，详情请看：https://jwc.zcmu.edu.cn/' + wzurl + '\n\n内容简介：' + description
+        send_wx_message(wx_url, wx_content)
+
+    resp = get_resp('get', 'https://jwc.zcmu.edu.cn/sjjx.htm')
+    last_resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=read&textid=sjjx')
+    resp_json = json.loads(last_resp)
+    last = resp_json["textcontent"]
+    wzlist = re.findall(r'<a class=".*?" href="(.*?)" target="_blank" title="(.*?)">', resp)
+    for wz in wzlist:
+        wzurl = wz[0]
+        wztitle = wz[1]
+        if isupdate == 0:
+            resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=edit&textid=sjjx&textcontent=' + wztitle)
+            isupdate = 1
+        if wztitle == last:
+            break
+        print(wztitle)
+        if "content.jsp" in wzurl:
+            description = "本消息需要登陆查看，暂无内容简介"
+        else:
+            resp = get_resp('get', 'https://jwc.zcmu.edu.cn/' + wzurl)
+            description = re.findall(r'<META Name="description" Content="(.*?)" />|$', resp)[0]
+        wx_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=8f8ba152-c44b-491e-abb7-d140f6100f54'
+        wx_content = '【教务处】教务处官网在『实践教学』栏目发布了《' + wztitle + '》，详情请看：https://jwc.zcmu.edu.cn/' + wzurl + '\n\n内容简介：' + description
+        send_wx_message(wx_url, wx_content)
+
+
+
+
+
+if __name__ == '__main__':
+    main()

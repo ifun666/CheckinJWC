@@ -70,10 +70,6 @@ def main():
     print("更新时间：2022年9月8日")
     print("程序版本：1.2.0_Beta")
     print("===============信息结束===============")
-    print("\n===============变量配置===============")
-    #print('程序配置文件中的会话ID：' + str(JSESSIONID))
-    isupdate = 0
-    print("===============配置结束===============")
     resp = get_resp('get', 'https://jwc.zcmu.edu.cn/jwgl.htm')
     last_resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=read&textid=jwgl')
     resp_json = json.loads(last_resp)

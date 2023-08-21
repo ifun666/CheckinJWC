@@ -177,7 +177,7 @@ def main():
         wzurl = wz[0]
         wztitle = wz[1]
         if isupdate == 0:
-            resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=edit&textid=jxgz&textcontent=' + parse.urlencode(wztitle))
+            resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=edit&textid=jxgz&textcontent=' + parse.quote(wztitle))
             isupdate = 1
         if wztitle == last:
             break

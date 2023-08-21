@@ -81,7 +81,7 @@ def main():
         wzurl = wz[0]
         wztitle = wz[1]
         if isupdate == 0:
-            resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=edit&textid=jwgl&textcontent=' + wztitle)
+            resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=edit&textid=jwgl&textcontent=' + parse.quote(wztitle))
             isupdate =1
         if wztitle == last:
             break
@@ -105,7 +105,7 @@ def main():
         wzurl = wz[0]
         wztitle = wz[1]
         if isupdate == 0:
-            resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=edit&textid=jxjs&textcontent=' + wztitle)
+            resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=edit&textid=jxjs&textcontent=' + parse.quote(wztitle))
             isupdate = 1
         if wztitle == last:
             break
@@ -129,7 +129,7 @@ def main():
         wzurl = wz[0]
         wztitle = wz[1]
         if isupdate == 0:
-            resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=edit&textid=sjjx&textcontent=' + wztitle)
+            resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=edit&textid=sjjx&textcontent=' + parse.quote(wztitle))
             isupdate = 1
         if wztitle == last:
             break
@@ -153,7 +153,7 @@ def main():
         wzurl = wz[0]
         wztitle = wz[1]
         if isupdate == 0:
-            resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=edit&textid=tzgg&textcontent=' + wztitle)
+            resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=edit&textid=tzgg&textcontent=' + parse.quote(wztitle))
             isupdate = 1
         if wztitle == last:
             break

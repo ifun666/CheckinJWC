@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
+from urllib import parse
 import json
 import re
 import requests
@@ -176,7 +177,7 @@ def main():
         wzurl = wz[0]
         wztitle = wz[1]
         if isupdate == 0:
-            resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=edit&textid=jxgz&textcontent=' + wztitle)
+            resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=edit&textid=jxgz&textcontent=' + parse.urlencode(wztitle))
             isupdate = 1
         if wztitle == last:
             break

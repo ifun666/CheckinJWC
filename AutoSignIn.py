@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8 _*_
 
-from urllib import parse
 import json
 import re
 import requests
 import time
+from urllib.parse import quote
 
 session = requests.session()  # 对全局进行会话实例化
 default_headers = {
@@ -64,6 +64,38 @@ def send_wx_message(webhook, content):
                 time.sleep(1)
     return None
 
+def get_text(txt_name):
+    last_resp = get_resp('get', 'https://api.txttool.cn/txtpad/txt/detail/?password=&txt_name=' + txt_name)
+    resp_json = json.loads(last_resp)
+    if resp_json["status"] == 1:
+        txt_content = resp_json["data"]['txt_content']
+        txt_content_json = json.loads(txt_content)
+        return txt_content_json[0]['content']
+    else:
+        return None
+
+
+def save_text(txt_name, txt_content):
+    resp = get_resp('get', 'https://api.txttool.cn/txtpad/txt/detail/?password=&txt_name=' + txt_name)
+    resp_json = json.loads(resp)
+    if resp_json["status"] == 1:
+        v_id = resp_json["data"]['v_id']
+    else:
+        return None
+    data = {
+        'txt_name': txt_name,
+        'txt_content': '[{"title":"0","content":"' + txt_content + '"}]',
+        'password': '',
+        'v_id': v_id,
+    }
+    last_resp = get_resp('post', 'https://api.txttool.cn/txtpad/txt/save/', data=data)
+    resp_json = json.loads(last_resp)
+    if resp_json["status"] == 1:
+        return True
+    else:
+        return None
+
+
 def main():
     print("\n===============程序信息===============")
     print("程序名称：教务处通知")
@@ -72,90 +104,40 @@ def main():
     print("程序版本：1.2.0_Beta")
     print("===============信息结束===============")
     isupdate = 0
-    resp = get_resp('get', 'https://jwc.zcmu.edu.cn/jwgl.htm')
-    last_resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=read&textid=jwgl')
-    resp_json = json.loads(last_resp)
-    last = resp_json["textcontent"]
-    wzlist = re.findall(r'<a class=".*?" href="(.*?)" target="_blank" title="(.*?)">', resp)
+    last = get_text('zcmujwxx')
+    resp = get_resp('get', 'https://portal.paas.zcmu.edu.cn/portal-api/v3/cms/content/getColumncontents?kw=&columnId=remote-acc34940-f1ed-46b9-bfd2-1c3e518574fa&pageNo=1&pageSize=20&loadContent=false&loadPicContents=true')
+    resp_json = json.loads(resp)
+    wzlist = resp_json['data']['allContents']
     for wz in wzlist:
-        wzurl = wz[0]
-        wztitle = wz[1]
+        wzid = wz['id']
+        wzurl = wz['url']
+        wztitle = wz['title']
         if isupdate == 0:
-            resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=edit&textid=jwgl&textcontent=' + parse.quote(wztitle))
+            save_text('zcmujwxx', wzid)
             isupdate =1
-        if wztitle == last:
+        if wzid == last:
             break
         print(wztitle)
         if "content.jsp" in wzurl:
             description = "本消息需要登陆查看，暂无内容简介"
         else:
-            resp = get_resp('get', 'https://jwc.zcmu.edu.cn/' + wzurl)
+            resp = get_resp('get', wzurl)
             description = re.findall(r'<META Name="description" Content="(.*?)" />|$', resp)[0]
         wx_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=8f8ba152-c44b-491e-abb7-d140f6100f54'
-        wx_content = '【教务处】教务处官网在『教务管理』栏目发布了《' + wztitle + '》，详情请看：https://jwc.zcmu.edu.cn/' + wzurl + '\n\n内容简介：' + description
+        wx_content = '【教务处】教务处官网发布了《' + wztitle + '》，详情请看：' + wzurl + '\n\n内容简介：' + description
         send_wx_message(wx_url, wx_content)
 
     isupdate = 0
-    resp = get_resp('get', 'https://jwc.zcmu.edu.cn/jxjs.htm')
-    last_resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=read&textid=jxjs')
-    resp_json = json.loads(last_resp)
-    last = resp_json["textcontent"]
-    wzlist = re.findall(r'<a class=".*?" href="(.*?)" target="_blank" title="(.*?)">', resp)
-    for wz in wzlist:
-        wzurl = wz[0]
-        wztitle = wz[1]
-        if isupdate == 0:
-            resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=edit&textid=jxjs&textcontent=' + parse.quote(wztitle))
-            isupdate = 1
-        if wztitle == last:
-            break
-        print(wztitle)
-        if "content.jsp" in wzurl:
-            description = "本消息需要登陆查看，暂无内容简介"
-        else:
-            resp = get_resp('get', 'https://jwc.zcmu.edu.cn/' + wzurl)
-            description = re.findall(r'<META Name="description" Content="(.*?)" />|$', resp)[0]
-        wx_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=8f8ba152-c44b-491e-abb7-d140f6100f54'
-        wx_content = '【教务处】教务处官网在『教学建设』栏目发布了《' + wztitle + '》，详情请看：https://jwc.zcmu.edu.cn/' + wzurl + '\n\n内容简介：' + description
-        send_wx_message(wx_url, wx_content)
-
-    isupdate = 0
-    resp = get_resp('get', 'https://jwc.zcmu.edu.cn/sjjx.htm')
-    last_resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=read&textid=sjjx')
-    resp_json = json.loads(last_resp)
-    last = resp_json["textcontent"]
-    wzlist = re.findall(r'<a class=".*?" href="(.*?)" target="_blank" title="(.*?)">', resp)
-    for wz in wzlist:
-        wzurl = wz[0]
-        wztitle = wz[1]
-        if isupdate == 0:
-            resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=edit&textid=sjjx&textcontent=' + parse.quote(wztitle))
-            isupdate = 1
-        if wztitle == last:
-            break
-        print(wztitle)
-        if "content.jsp" in wzurl:
-            description = "本消息需要登陆查看，暂无内容简介"
-        else:
-            resp = get_resp('get', 'https://jwc.zcmu.edu.cn/' + wzurl)
-            description = re.findall(r'<META Name="description" Content="(.*?)" />|$', resp)[0]
-        wx_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=8f8ba152-c44b-491e-abb7-d140f6100f54'
-        wx_content = '【教务处】教务处官网在『实践教学』栏目发布了《' + wztitle + '》，详情请看：https://jwc.zcmu.edu.cn/' + wzurl + '\n\n内容简介：' + description
-        send_wx_message(wx_url, wx_content)
-
-    isupdate = 0
+    last = get_text('zcmutzgg')
     resp = get_resp('get', 'https://dylc.zcmu.edu.cn/xwdt/tzgg.htm')
-    last_resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=read&textid=tzgg')
-    resp_json = json.loads(last_resp)
-    last = resp_json["textcontent"]
     wzlist = re.findall(r'<li id=".*?"><a href="../(.*?)">(.*?)</a><i>.*?</i></li>', resp)
     for wz in wzlist:
         wzurl = wz[0]
         wztitle = wz[1]
         if isupdate == 0:
-            resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=edit&textid=tzgg&textcontent=' + parse.quote(wztitle))
+            save_text('zcmutzgg', quote(wztitle))
             isupdate = 1
-        if wztitle == last:
+        if quote(wztitle) == last:
             break
         print(wztitle)
         if "content.jsp" in wzurl:
@@ -168,18 +150,16 @@ def main():
         send_wx_message(wx_url, wx_content)
 
     isupdate = 0
+    last = get_text('zcmujxgz')
     resp = get_resp('get', 'https://dylc.zcmu.edu.cn/jxgz.htm')
-    last_resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=read&textid=jxgz')
-    resp_json = json.loads(last_resp)
-    last = resp_json["textcontent"]
     wzlist = re.findall(r'<li id=".*?"><a href="(.*?)">(.*?)</a><i>.*?</i></li>', resp)
     for wz in wzlist:
         wzurl = wz[0]
         wztitle = wz[1]
         if isupdate == 0:
-            resp = get_resp('get', 'https://www.canpointgz.cn/cj/text.php?method=edit&textid=jxgz&textcontent=' + parse.quote(wztitle))
+            save_text('zcmujxgz', quote(wztitle))
             isupdate = 1
-        if wztitle == last:
+        if quote(wztitle) == last:
             break
         print(wztitle)
         if "content.jsp" in wzurl:
@@ -190,6 +170,9 @@ def main():
         wx_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=8f8ba152-c44b-491e-abb7-d140f6100f54'
         wx_content = '【第一临床医学院】学院官网在『教学工作』栏目发布了《' + wztitle + '》，详情请看：https://dylc.zcmu.edu.cn/' + wzurl + '\n\n内容简介：' + description
         send_wx_message(wx_url, wx_content)
+
+
+    print("===============信息更新完毕===============")
 
 
 

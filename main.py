@@ -209,7 +209,7 @@ def main():
         else:
             print(wztitle)
             wx_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=8f8ba152-c44b-491e-abb7-d140f6100f54'
-            wx_content = '【教务处】在『考试管理	』栏目发布了《' + wztitle + '》，详情请看：https://jwc.zcmu.edu.cn/' + wzurl
+            wx_content = '【教务处】在『考试管理』栏目发布了《' + wztitle + '》，详情请看：https://jwc.zcmu.edu.cn/' + wzurl
             send_wx_message(wx_url, wx_content)
             last_list.append(quote(wztitle))
     now_text = json.dumps({'list': last_list})
@@ -225,8 +225,7 @@ def main():
             last = '{"list": []}'
         last_text = json.loads(last)
         last_list = last_text['list']
-        resp = get_resp('get',
-                        'https://portal.paas.zcmu.edu.cn/portal-api/v3/cms/content/getColumncontents?kw=&columnId=remote-8e9c3ee2-ddc2-41c3-a62f-95207b48cd37&pageNo=1&pageSize=22&loadContent=false&loadPicContents=true')
+        resp = get_resp('get', 'https://portal.paas.zcmu.edu.cn/portal-api/v3/cms/content/getColumncontents?kw=&columnId=remote-8e9c3ee2-ddc2-41c3-a62f-95207b48cd37&pageNo=1&pageSize=22&loadContent=false&loadPicContents=true')
         resp_json = json.loads(resp)
         wzlist = resp_json['data']['allContents']
         for wz in wzlist:
@@ -249,8 +248,7 @@ def main():
             last = '{"list": []}'
         last_text = json.loads(last)
         last_list = last_text['list']
-        resp = get_resp('get',
-                        'https://portal.paas.zcmu.edu.cn/portal-api/v3/cms/content/getColumncontents?kw=&columnId=remote-9f24ed05-0fb2-4ae0-8e72-6eb9e22c5d9e&pageNo=1&pageSize=22&loadContent=false&loadPicContents=true')
+        resp = get_resp('get', 'https://portal.paas.zcmu.edu.cn/portal-api/v3/cms/content/getColumncontents?kw=&columnId=remote-9f24ed05-0fb2-4ae0-8e72-6eb9e22c5d9e&pageNo=1&pageSize=22&loadContent=false&loadPicContents=true')
         resp_json = json.loads(resp)
         wzlist = resp_json['data']['allContents']
         for wz in wzlist:
@@ -273,8 +271,7 @@ def main():
             last = '{"list": []}'
         last_text = json.loads(last)
         last_list = last_text['list']
-        resp = get_resp('get',
-                        'https://portal.paas.zcmu.edu.cn/portal-api/v3/cms/content/getColumncontents?kw=&columnId=remote-a6ffde86-db1d-4996-9db3-598f6dcc6941&pageNo=1&pageSize=22&loadContent=false&loadPicContents=true')
+        resp = get_resp('get', 'https://portal.paas.zcmu.edu.cn/portal-api/v3/cms/content/getColumncontents?kw=&columnId=remote-a6ffde86-db1d-4996-9db3-598f6dcc6941&pageNo=1&pageSize=22&loadContent=false&loadPicContents=true')
         resp_json = json.loads(resp)
         wzlist = resp_json['data']['allContents']
         for wz in wzlist:
@@ -297,8 +294,7 @@ def main():
             last = '{"list": []}'
         last_text = json.loads(last)
         last_list = last_text['list']
-        resp = get_resp('get',
-                        'https://portal.paas.zcmu.edu.cn/portal-api/v3/cms/content/getColumncontents?kw=&columnId=remote-b270c080-44d0-4fb1-ac4d-a7d76173cebc&pageNo=1&pageSize=22&loadContent=false&loadPicContents=true')
+        resp = get_resp('get', 'https://portal.paas.zcmu.edu.cn/portal-api/v3/cms/content/getColumncontents?kw=&columnId=remote-b270c080-44d0-4fb1-ac4d-a7d76173cebc&pageNo=1&pageSize=22&loadContent=false&loadPicContents=true')
         resp_json = json.loads(resp)
         wzlist = resp_json['data']['allContents']
         for wz in wzlist:
